@@ -9,10 +9,58 @@ const email = ref<string>('')
 const phone = ref<string>('')
 const password = ref<string>('')
 const repeatPassword = ref<string>('')
+const errors = ref<{ [key: string]: string }>({})
 
 const API = 'https://jsonplaceholder.typicode.com/posts'
 
+const isValidatePhone = (value: string): boolean => {
+    const digitsOnlyRegex = /^\d+$/;
+    return digitsOnlyRegex.test(value);
+};
+
+const isValidateEmail = (email: string): boolean => {
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return emailRegex.test(email);
+}
+
+
+const validate = (): boolean => {
+    if (!firstName.value.trim()) {
+        errors.value.firstName = 'Введите имя'
+    }
+
+    if (!lastName.value.trim()) {
+        errors.value.lastName = 'Введите фамилию'
+    }
+
+    if (!email.value.trim()) {
+        errors.value.email = "Введите почту"
+    } else if (!isValidateEmail(email.value)) {
+        errors.value.email = 'Введите корректную почту'
+    }
+    if (!phone.value.trim()) {
+        errors.value.phone = 'Введите номер телефона'
+    } else if (!isValidatePhone(phone.value)) {
+        errors.value.phone = 'Введите корректный номер'
+    }
+    if (!password.value.trim()) {
+        errors.value.phone = "Введите пароль"
+    } else if (password.value.length < 8) {
+        errors.value.password = 'Пароль должен содержать не менее 8 символов'
+    }
+    if (!repeatPassword.value.trim()) {
+        errors.value.repeatPassword = 'Введите пароль повторно'
+    } else if (repeatPassword.value !== password.value) {
+        errors.value.repeatPassword = 'Пароли не совпадают'
+    }
+    return Object.keys(errors.value).length === 0
+}
+
 const handleSubmit = async () => {
+    if(!validate()) {
+        toast.error('Пожалуйста исправьте ошибки')
+        return
+    }
     try {
         const response = await axios.post(API, {
             firstName: firstName.value,
@@ -26,7 +74,7 @@ const handleSubmit = async () => {
         toast.success('Вы успешно зарегистрировались!')
     } catch (error: unknown) {
         console.error(error)
-        if(error) {
+        if (error) {
             // toast.error(`Ошибка: ${error.response?.data?.message || error.message}`)
         } else {
             toast.error('Произошла непредвиденная ошибка')
