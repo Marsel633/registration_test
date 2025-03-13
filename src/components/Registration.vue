@@ -44,7 +44,7 @@ const validate = (): boolean => {
         errors.value.phone = 'Введите корректный номер'
     }
     if (!password.value.trim()) {
-        errors.value.phone = "Введите пароль"
+        errors.value.password = "Введите пароль"
     } else if (password.value.length < 8) {
         errors.value.password = 'Пароль должен содержать не менее 8 символов'
     }
@@ -87,29 +87,35 @@ const handleSubmit = async () => {
     <section class="container">
         <h2 class="title">Регистрация</h2>
         <form @submit.prevent="handleSubmit" class="form">
-            <div class="form__item">
+            <div class="form__item" :class="{error: errors.firstName}">
                 <label for="">Имя</label>
                 <input type="text" v-model="firstName" />
+                <span class="error_message">{{errors.firstName}}</span>
             </div>
-            <div class="form__item">
+            <div class="form__item" :class="{error: errors.lastName}">
                 <label for="">Фамилия</label>
                 <input type="text" v-model="lastName" />
+                <span class="error_message">{{errors.lastName}}</span>
             </div>
-            <div class="form__item">
+            <div class="form__item" :class="{error: errors.email}">
                 <label for="">Почта</label>
                 <input type="emial" v-model="email" />
+                <span class="error_message">{{errors.email}}</span>
             </div>
-            <div class="form__item">
+            <div class="form__item" :class="{error: errors.phone}">
                 <label for="">Номер</label>
                 <input type="text" v-model="phone" />
+                <span class="error_message">{{errors.phone}}</span>
             </div>
-            <div class="form__item">
+            <div class="form__item" :class="{error: errors.password}">
                 <label for="">Пароль</label>
                 <input type="password" v-model="password" />
+                <span class="error_message">{{errors.password}}</span>
             </div>
-            <div class="form__item">
+            <div class="form__item" :class="{error: errors.repeatPassword}">
                 <label for="">Подтвердите пароль</label>
                 <input type="password" v-model="repeatPassword" />
+                <span class="error_message">{{errors.repeatPassword}}</span>
             </div>
             <button class="submitBtn" type="submit">Зарегистрироваться</button>
         </form>
@@ -169,5 +175,12 @@ const handleSubmit = async () => {
 
 .submitBtn:hover {
     background-color: #359238;
+}
+
+.form__item.error input {
+    border-color: red;
+}
+.error_message {
+    color: red;
 }
 </style>
