@@ -10,6 +10,7 @@ const phone = ref<string>('')
 const password = ref<string>('')
 const repeatPassword = ref<string>('')
 const errors = ref<{ [key: string]: string }>({})
+const isSubmitting = ref<boolean>(false)
 
 const API = 'https://jsonplaceholder.typicode.com/posts'
 
@@ -25,6 +26,7 @@ const isValidateEmail = (email: string): boolean => {
 
 
 const validate = (): boolean => {
+    errors.value = {}
     if (!firstName.value.trim()) {
         errors.value.firstName = 'Введите имя'
     }
@@ -56,11 +58,23 @@ const validate = (): boolean => {
     return Object.keys(errors.value).length === 0
 }
 
+const resetForm = () => {
+    firstName.value = '',
+        lastName.value = '',
+        email.value = '',
+        phone.value = '',
+        password.value = '',
+        repeatPassword.value = ''
+    errors.value = {}
+}
+
 const handleSubmit = async () => {
-    if(!validate()) {
+    if (!validate()) {
         toast.error('Пожалуйста исправьте ошибки')
         return
     }
+
+    isSubmitting.value = true
     try {
         const response = await axios.post(API, {
             firstName: firstName.value,
@@ -72,13 +86,20 @@ const handleSubmit = async () => {
         })
 
         toast.success('Вы успешно зарегистрировались!')
+
+        resetForm();
+
     } catch (error: unknown) {
-        console.error(error)
-        if (error) {
-            // toast.error(`Ошибка: ${error.response?.data?.message || error.message}`)
+        if (typeof error === 'object' && error !== null && 'response' in error) {
+            const axiosError = error as { response?: { data?: { message?: string } } }
+            toast.error(`Ошибка: ${axiosError.response?.data?.message || 'Произошла ошибка запроса'}`)
+        } else if (error instanceof Error) {
+            toast.error(`Ошибка: ${error.message}`)
         } else {
             toast.error('Произошла непредвиденная ошибка')
         }
+    } finally {
+        isSubmitting.value = false
     }
 }
 </script>
@@ -87,37 +108,38 @@ const handleSubmit = async () => {
     <section class="container">
         <h2 class="title">Регистрация</h2>
         <form @submit.prevent="handleSubmit" class="form">
-            <div class="form__item" :class="{error: errors.firstName}">
+            <div class="form__item" :class="{ error: errors.firstName }">
                 <label for="">Имя</label>
                 <input type="text" v-model="firstName" />
-                <span class="error_message">{{errors.firstName}}</span>
+                <span class="error_message">{{ errors.firstName }}</span>
             </div>
-            <div class="form__item" :class="{error: errors.lastName}">
+            <div class="form__item" :class="{ error: errors.lastName }">
                 <label for="">Фамилия</label>
                 <input type="text" v-model="lastName" />
-                <span class="error_message">{{errors.lastName}}</span>
+                <span class="error_message">{{ errors.lastName }}</span>
             </div>
-            <div class="form__item" :class="{error: errors.email}">
+            <div class="form__item" :class="{ error: errors.email }">
                 <label for="">Почта</label>
                 <input type="emial" v-model="email" />
-                <span class="error_message">{{errors.email}}</span>
+                <span class="error_message">{{ errors.email }}</span>
             </div>
-            <div class="form__item" :class="{error: errors.phone}">
+            <div class="form__item" :class="{ error: errors.phone }">
                 <label for="">Номер</label>
                 <input type="text" v-model="phone" />
-                <span class="error_message">{{errors.phone}}</span>
+                <span class="error_message">{{ errors.phone }}</span>
             </div>
-            <div class="form__item" :class="{error: errors.password}">
+            <div class="form__item" :class="{ error: errors.password }">
                 <label for="">Пароль</label>
                 <input type="password" v-model="password" />
-                <span class="error_message">{{errors.password}}</span>
+                <span class="error_message">{{ errors.password }}</span>
             </div>
-            <div class="form__item" :class="{error: errors.repeatPassword}">
+            <div class="form__item" :class="{ error: errors.repeatPassword }">
                 <label for="">Подтвердите пароль</label>
                 <input type="password" v-model="repeatPassword" />
-                <span class="error_message">{{errors.repeatPassword}}</span>
+                <span class="error_message">{{ errors.repeatPassword }}</span>
             </div>
-            <button class="submitBtn" type="submit">Зарегистрироваться</button>
+            <button class="submitBtn" type="submit" :disabled="isSubmitting">{{ isSubmitting ? 'Отправляем данные...' :
+                'Зарегистрироваться'}}</button>
         </form>
     </section>
 </template>
@@ -180,7 +202,13 @@ const handleSubmit = async () => {
 .form__item.error input {
     border-color: red;
 }
+
 .error_message {
     color: red;
+}
+
+.submitBtn:disabled {
+    background-color: #aaa;
+    cursor: not-allowed;
 }
 </style>
